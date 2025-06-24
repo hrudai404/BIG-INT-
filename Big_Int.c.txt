@@ -1,0 +1,351 @@
+#include <stdio.h>
+#include <string.h>
+#define SIZE 309
+
+typedef struct BigIntegerTag
+{
+    int arr[SIZE];
+    int size;
+    int sign;
+} BigInt;
+
+BigInt input()
+{
+    printf("Enter the number :");
+    char s[SIZE];
+    scanf("%s", s);
+    int length = strlen(s);
+    BigInt BigNumber;
+    int iterString = 0;
+    for (int i = length - 1; i > 0; i--)
+    {
+        BigNumber.arr[iterString] = s[i] - '0';
+        iterString++;
+    }
+    if (s[0] == '-')
+    {
+        BigNumber.sign = -1;
+    }
+    else
+    {
+        BigNumber.arr[iterString] = s[0] - '0';
+        iterString++;
+        BigNumber.sign = 1;
+    }
+    BigNumber.size = iterString;
+    return BigNumber;
+}
+void printBigInt(BigInt BigNumber)
+{
+    if (BigNumber.sign == -1)
+    {
+        printf("-");
+    }
+    for (int i = BigNumber.size - 1; i >= 0; i--)
+    {
+        printf("%d", BigNumber.arr[i]);
+    }
+
+    printf("\n");
+}
+
+int compare(BigInt num1, BigInt num2)
+{
+    if(num1.sign==1 && num2.sign==1){
+
+        if (num1.size < num2.size)
+        {
+            return -1;
+        }
+
+        else if (num1.size == num2.size)
+        {
+            int i = num1.size - 1;
+            while (i >= 0 && num1.arr[i] == num2.arr[i])
+            {
+                i--;
+            }
+            if (i == -1)
+            {
+                return 0;
+            }
+            if (num1.arr[i] < num2.arr[i])
+            {
+                return -1;
+            }
+        }
+        return 1;
+    }
+    else if(num1.sign==-1 && num2.sign==-1){
+        num1.sign=1;num2.sign=1;
+        return compare(num2,num1);
+    }
+    else if(num1.sign==1){
+        return 1;
+    }
+    else {
+        return -1;
+    }
+
+}
+BigInt add(BigInt num1, BigInt num2);
+BigInt subtract(BigInt num1, BigInt num2)
+{
+    BigInt ans;
+    if(compare(num1,num2)==-1){
+
+        ans = subtract(num2 , num1);
+        ans.sign = -1;
+        return ans;
+    }
+    int z = 0;
+    int newSize = 0;
+    for (int i = 0; i < num2.size; i++)
+    {
+        if (num1.arr[i] - num2.arr[i] < 0)
+        {
+            num1.arr[i + 1]--;
+            num1.arr[i] += 10;
+        }
+        ans.arr[z] = num1.arr[i] - num2.arr[i];
+        if (ans.arr[z] != 0)
+        {
+            newSize = i;
+        }
+        z++;
+    }
+
+    for (int i = num2.size; i < num1.size; i++)
+    {
+        if (num1.arr[i] != 0)
+        {
+            newSize = i;
+        }
+        if (num1.arr[i] < 0)
+        {
+            num1.arr[i + 1]--;
+            num1.arr[i] += 10;
+        }
+        ans.arr[z] = num1.arr[i];
+        z++;
+    }
+    ans.size = newSize + 1;
+    return ans;
+}
+
+BigInt subtraction(BigInt num1, BigInt num2)
+{
+    
+    BigInt ans;
+    if ((num2.sign == 1 && 1 == num1.sign))
+    {
+        ans = subtract(num1,num2);
+    }
+    else if (num2.sign == -1 && -1 == num1.sign)
+    {
+        num1.sign=1;
+        num2.sign=1;
+        ans = subtract(num1,num2);
+
+        if(compare(num1 , num2)==1){
+            ans.sign = -1;
+        }else{
+            ans.sign = 1;
+        }
+        
+    }
+    else if (num1.sign == 1 && num2.sign == -1)
+    {
+        num2.sign = 1;
+        ans = add(num1, num2);
+        ans.sign = 1;
+    }
+    else
+    {
+        num1.sign = 1;
+        ans = add(num1, num2);
+        ans.sign = -1;
+    }
+    return ans;
+}
+
+
+BigInt add(BigInt num1, BigInt num2)
+{
+    int s1 = 0, s2 = 0;
+    BigInt ans;
+    if (num1.sign == -1)
+    {
+        num1.sign = 1;
+        s1 = 1;
+    }
+    if (num2.sign == -1)
+    {
+        
+        num2.sign = 1;
+        s2 = 1;
+    }
+    if (s1 && s2)
+    {
+        ans = add(num1, num2);
+        ans.sign = -1;
+        return ans;
+    }
+    else if (s1)
+    {
+        ans = subtraction(num1, num2);
+        if(compare(num1,num2)==1){
+            ans.sign=-1;
+        }else{
+            ans.sign=1;
+        }
+        return ans;
+    }
+    else if (s2)
+    {
+        ans = subtraction(num1, num2);
+        if(compare(num1,num2)==-1){
+            ans.sign=-1;
+        }else{
+            ans.sign=1;
+        }
+        return ans;
+    }
+    if (num1.size < num2.size)
+    {
+        return add(num2, num1);
+    }
+    int z = 0;
+    int c = 0;
+    for (int i = 0; i < num2.size; i++)
+    {
+        int temp = num1.arr[i] + num2.arr[i] + c;
+        ans.arr[z] = temp % 10;
+        c = temp / 10;
+        z++;
+    }
+    for (int i = num2.size; i < num1.size; i++)
+    {
+        int temp = num1.arr[i] + c;
+        ans.arr[z] = temp % 10;
+        c = temp / 10;
+        z++;
+    }
+    if (c > 0)
+    {
+        ans.arr[z] = c;
+        z++;
+    }
+    ans.size = z;
+    ans.sign=1;
+    return ans;
+}
+
+BigInt multiply(BigInt num1, BigInt num2)
+{
+    BigInt ans;
+    ans.size = 0;
+    int s1 = 0 , s2 = 0 ;
+    if(num1.sign==-1 && num2.sign==-1){
+        s1 = 1;
+        s2=1;
+    }
+    else if(num1.sign==-1 || num2.sign==-1){
+        s1=1;
+    }
+    num1.sign=1;
+    num2.sign=1;
+    for (int i = 0; i < num1.size; i++)
+    {
+        int c = 0;
+        BigInt t;
+        int z = 0;
+        for (int j = 0; j < num2.size; j++)
+        {
+            int temp = num1.arr[i] * num2.arr[j] + c;
+            t.arr[z] = temp % 10;
+            c = temp / 10;
+            z++;
+        }
+        if (c > 0)
+        {
+            t.arr[z] = c;
+            z++;
+        }
+        t.size = z;
+        BigInt pro1;
+        int ind = 0;
+        for (int p = 0; p < i; p++)
+        {
+            pro1.arr[ind] = 0;
+            ind++;
+        }
+        for (int p = 0; p < t.size; p++)
+        {
+            pro1.arr[ind] = t.arr[p];
+            ind++;
+        }
+        pro1.size = ind;
+        ans = add(ans, pro1);
+    }
+    if(s1==1 && s2==0){
+        ans.sign=-1;
+    }else{
+        ans.sign=1;
+    }
+    return ans;
+}
+
+int main()
+{
+    int a = 0;
+    BigInt x;
+    BigInt y;
+    int x_int;
+    do
+    {
+        printf("Enter 1 to add two bigintegers :\n");
+        printf("Enter 2 to subtract two bigintegers :\n");
+        printf("Enter 3 to multiply two bigintegers :\n");
+        printf("Enter 0 to end the program :\n");
+        scanf("%d", &a);
+        switch (a)
+        {
+        case 1:
+            x = input();
+            y = input();
+            if((x.size > 308)||(y.size > 308)){
+                printf("OVERFLOW!!!!!");
+                break;
+            }
+            printf("ans = ");
+            printBigInt(add(x, y));
+            break;
+        case 2:
+            x = input();
+            y = input();
+            printf("ans = ");
+            printBigInt(subtraction(x, y));
+            break;
+        case 3:
+            x = input();
+            y = input();
+            if((x.size + y.size) >= 308){
+                printf("OVERFLOW!!!!!");
+                break;
+            }
+            printf("ans = ");
+            printBigInt(multiply(x, y));
+            break;
+        default:
+            if(a!=0){
+            printf("Invalid option! Please enter a valid option (1, 2, or 3).\n");}
+            break;
+        }
+
+        printf("\n");
+    } while (a != 0);
+    printf("Here the program ends....");
+
+    return 0;
+}
